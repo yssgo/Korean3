@@ -44,11 +44,11 @@ c.combine()
 print(c)
 print('>>> 워')
 
-# * CMU Dictionary - <http://www.speech.cs.cmu.edu/cgi-bin/cmudict>
+### CMU Dictionary - <http://www.speech.cs.cmu.edu/cgi-bin/cmudict>
 
 from cmuToKorean import CMUToKorean
 
-result = CMUToKorean.convert(u'MIDDLE', u'M IH1 D AH0 L')
+result = CMUToKorean.convert('MIDDLE', 'M IH1 D AH0 L')
 
 for v in result:
     print(v)
