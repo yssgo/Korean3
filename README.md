@@ -4,7 +4,7 @@
 
     * Python2.7 에서는 unicode 타입을, Python 3.12에서는 str 타입을 사용함.
 
-    * 이하는 README.md 원본. 아래 내용 중 변경해야 하는 부분은 Read_Me.py 참조.
+    * 이하는 README.md 원본. 아래 내용 중 변경해야 하는 부분은 Read_me.py 참조.
 
 ----
 
