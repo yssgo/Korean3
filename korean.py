@@ -1,112 +1,122 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals, print_function, division, absolute_import
+
 import abc
 import sys
 import copy
 import collections
 import re
-
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
+import six
+if int(sys.version[0]) < 3:
+    StrType = unicode
+    UniChr = unichr
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+else:
+    StrType = str
+    UniChr = chr
 
 class Korean(object):
     unicode_base_code, unicode_onset_offset, unicode_nucleus_offset = 44032, 588, 28
 
     # 초성(19)
     phoneme_onset_list = [
-        u'ㄱ', u'ㄲ', u'ㄴ', u'ㄷ',
-        u'ㄸ', u'ㄹ', u'ㅁ', u'ㅂ',
-        u'ㅃ', u'ㅅ', u'ㅆ', u'ㅇ',
-        u'ㅈ', u'ㅉ', u'ㅊ', u'ㅋ',
-        u'ㅌ', u'ㅍ', u'ㅎ']
+        'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ',
+        'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ',
+        'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ',
+        'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ',
+        'ㅌ', 'ㅍ', 'ㅎ'
+    ] # yapf: disable
 
     phoneme_onset_list_len = len(phoneme_onset_list)
     phoneme_onset_dict = {v: i for i, v in enumerate(phoneme_onset_list)}
 
     # 중성(21)
     phoneme_nucleus_list = [
-        u'ㅏ', u'ㅐ', u'ㅑ', u'ㅒ',
-        u'ㅓ', u'ㅔ', u'ㅕ', u'ㅖ',
-        u'ㅗ', u'ㅘ', u'ㅙ', u'ㅚ',
-        u'ㅛ', u'ㅜ', u'ㅝ', u'ㅞ',
-        u'ㅟ', u'ㅠ', u'ㅡ', u'ㅢ',
-        u'ㅣ']
+        'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ',
+        'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ',
+        'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ',
+        'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ',
+        'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ',
+        'ㅣ'
+    ] # yapf: disable
 
     phoneme_nucleus_list_len = len(phoneme_nucleus_list)
     phoneme_nucleus_dict = {v: i for i, v in enumerate(phoneme_nucleus_list)}
 
     # 종성(28)
     phoneme_coda_list = [
-        u' ', u'ㄱ', u'ㄲ', u'ㄳ',
-        u'ㄴ', u'ㄵ', u'ㄶ', u'ㄷ',
-        u'ㄹ', u'ㄺ', u'ㄻ', u'ㄼ',
-        u'ㄽ', u'ㄾ', u'ㄿ', u'ㅀ',
-        u'ㅁ', u'ㅂ', u'ㅄ', u'ㅅ',
-        u'ㅆ', u'ㅇ', u'ㅈ', u'ㅊ',
-        u'ㅋ', u'ㅌ', u'ㅍ', u'ㅎ']
+        ' ', 'ㄱ', 'ㄲ', 'ㄳ',
+        'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ',
+        'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ',
+        'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ',
+        'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ',
+        'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ',
+        'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+    ] # yapf: disable
 
     phoneme_coda_list_len = len(phoneme_coda_list)
     phoneme_coda_dict = {v: i for i, v in enumerate(phoneme_coda_list)}
 
     # 쌍자음/된소리
     phoneme_double_consonant_dict = {
-        u'ㄲ': [u'ㄱ', u'ㄱ'], u'ㄳ': [u'ㄱ', u'ㅅ'],
-        u'ㄵ': [u'ㄴ', u'ㅈ'], u'ㄶ': [u'ㄴ', u'ㅎ'],
-        u'ㄸ': [u'ㄷ', u'ㄷ'],
-        u'ㄺ': [u'ㄹ', u'ㄱ'], u'ㄻ': [u'ㄹ', u'ㅁ'],
-        u'ㄼ': [u'ㄹ', u'ㅂ'], u'ㄽ': [u'ㄹ', u'ㅅ'],
-        u'ㄾ': [u'ㄹ', u'ㅌ'], u'ㄿ': [u'ㄹ', u'ㅍ'], u'ㅀ': [u'ㄹ', u'ㅎ'],
-        u'ㅃ': [u'ㅂ', u'ㅂ'], u'ㅄ': [u'ㅂ', u'ㅅ'],
-        u'ㅆ': [u'ㅅ', u'ㅅ'],
-        u'ㅉ': [u'ㅈ', u'ㅈ']
-    }
+        'ㄲ': ['ㄱ', 'ㄱ'], 'ㄳ': ['ㄱ', 'ㅅ'],
+        'ㄵ': ['ㄴ', 'ㅈ'], 'ㄶ': ['ㄴ', 'ㅎ'],
+        'ㄸ': ['ㄷ', 'ㄷ'],
+        'ㄺ': ['ㄹ', 'ㄱ'], 'ㄻ': ['ㄹ', 'ㅁ'],
+        'ㄼ': ['ㄹ', 'ㅂ'], 'ㄽ': ['ㄹ', 'ㅅ'],
+        'ㄾ': ['ㄹ', 'ㅌ'], 'ㄿ': ['ㄹ', 'ㅍ'], 'ㅀ': ['ㄹ', 'ㅎ'],
+        'ㅃ': ['ㅂ', 'ㅂ'], 'ㅄ': ['ㅂ', 'ㅅ'],
+        'ㅆ': ['ㅅ', 'ㅅ'],
+        'ㅉ': ['ㅈ', 'ㅈ']
+    } # yapf: disable
 
     phoneme_lenis_to_fortis_dict = {
-        u'ㄱ': u'ㄲ',
-        u'ㄷ': u'ㄸ',
-        u'ㅂ': u'ㅃ',
-        u'ㅅ': u'ㅆ',
-        u'ㅈ': u'ㅉ'
-    }
+        'ㄱ': 'ㄲ',
+        'ㄷ': 'ㄸ',
+        'ㅂ': 'ㅃ',
+        'ㅅ': 'ㅆ',
+        'ㅈ': 'ㅉ'
+    } # yapf: disable
 
     phoneme_lenis_to_asprite_dict = {
-        u'ㄱ': u'ㅋ',
-        u'ㄷ': u'ㅌ',
-        u'ㅂ': u'ㅍ',
-        u'ㅈ': u'ㅊ'
-    }
+        'ㄱ': 'ㅋ',
+        'ㄷ': 'ㅌ',
+        'ㅂ': 'ㅍ',
+        'ㅈ': 'ㅊ'
+    } # yapf: disable
 
     # 중성 발음 합성
     phoneme_nucleus_phonetic_combine_dict = {
-        u'ㅣㅏ': u'ㅑ',
-        u'ㅣㅓ': u'ㅕ',
-        u'ㅣㅐ': u'ㅒ',
-        u'ㅣㅔ': u'ㅖ',
-        u'ㅣㅜ': u'ㅠ',
-        u'ㅣㅗ': u'ㅛ',
-        u'ㅡㅣ': u'ㅢ',
-        u'ㅜㅣ': u'ㅟ',
-        u'ㅜㅏ': u'ㅘ',
-        u'ㅜㅓ': u'ㅝ',
-        u'ㅜㅐ': u'ㅙ',
-        u'ㅜㅔ': u'ㅞ',
-        u'ㅗㅣ': u'ㅚ',
-        u'ㅗㅏ': u'ㅘ',
-        u'ㅗㅓ': u'ㅝ',
-        u'ㅗㅐ': u'ㅙ',
-        u'ㅗㅔ': u'ㅞ'
-    }
+        'ㅣㅏ': 'ㅑ',
+        'ㅣㅓ': 'ㅕ',
+        'ㅣㅐ': 'ㅒ',
+        'ㅣㅔ': 'ㅖ',
+        'ㅣㅜ': 'ㅠ',
+        'ㅣㅗ': 'ㅛ',
+        'ㅡㅣ': 'ㅢ',
+        'ㅜㅣ': 'ㅟ',
+        'ㅜㅏ': 'ㅘ',
+        'ㅜㅓ': 'ㅝ',
+        'ㅜㅐ': 'ㅙ',
+        'ㅜㅔ': 'ㅞ',
+        'ㅗㅣ': 'ㅚ',
+        'ㅗㅏ': 'ㅘ',
+        'ㅗㅓ': 'ㅝ',
+        'ㅗㅐ': 'ㅙ',
+        'ㅗㅔ': 'ㅞ'
+    } # yapf: disable
 
     # 중성 합성
     phoneme_nucleus_combine_dict = {
-        u'ㅡ+ㅣ': u'ㅢ',
-        u'ㅜ+ㅣ': u'ㅟ',
-        u'ㅜ+ㅓ': u'ㅝ',
-        u'ㅜ+ㅔ': u'ㅞ',
-        u'ㅗ+ㅣ': u'ㅚ',
-        u'ㅗ+ㅏ': u'ㅘ',
-        u'ㅗ+ㅐ': u'ㅙ',
-    }
+        'ㅡ+ㅣ': 'ㅢ',
+        'ㅜ+ㅣ': 'ㅟ',
+        'ㅜ+ㅓ': 'ㅝ',
+        'ㅜ+ㅔ': 'ㅞ',
+        'ㅗ+ㅣ': 'ㅚ',
+        'ㅗ+ㅏ': 'ㅘ',
+        'ㅗ+ㅐ': 'ㅙ',
+    } # yapf: disable
 
     # 문자셋
     phoneme_set = set(phoneme_onset_list + phoneme_nucleus_list + phoneme_coda_list)
@@ -122,8 +132,8 @@ class Korean(object):
         pass
 
     # Filters
+    @six.add_metaclass(abc.ABCMeta)
     class Filter(object):
-        __metaclass__ = abc.ABCMeta
 
         def pre(self, sequence):
             pass
@@ -149,76 +159,75 @@ class Korean(object):
             phoneme_coda = kwargs.get('phoneme_coda', None)
 
             # nuclues combine
-            if isinstance(phoneme_nucleus, (str, unicode)):
-                phoneme_nucleus = unicode(phoneme_nucleus)
-
+            
+            if isinstance(phoneme_nucleus, StrType):
                 # nuclues combine
                 if re.search(r'.\+.', phoneme_nucleus):
                     if phoneme_nucleus in Korean.phoneme_nucleus_combine_dict:
                         phoneme_nucleus = Korean.phoneme_nucleus_combine_dict[phoneme_nucleus]
                     else:
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_nucleus(={0}) in Korean.phoneme_nucleus_combine_dict'.format(phoneme_nucleus))
 
                 # nuclues phonetic combine
                 elif re.search(r'..', phoneme_nucleus):
                     if phoneme_nucleus in Korean.phoneme_nucleus_phonetic_combine_dict:
                         phoneme_nucleus = Korean.phoneme_nucleus_phonetic_combine_dict[phoneme_nucleus]
                     else:
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_nucleus(={0}) in Korean.phoneme_nucleus_phonetic_combine_dict:'.format(phoneme_nucleus))
 
             if kwargs.get('check', True):
                 if letter is not None:
-                    if not isinstance(letter, (str, unicode)):
-                        raise Korean.SyllableFailedException()
+                    if not isinstance(letter, StrType):
+                        raise Korean.SyllableFailedException('not isinstance(letter(={0}), StrType)'.format(letter))
 
-                    letter = letter if isinstance(letter, unicode) else unicode(letter)
+                    letter = letter if isinstance(letter, StrType) else StrType(letter)
                     if len(letter) != 1:
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('letter={0}, len(letter) != 1'.format(letter))
 
                     if not Korean.is_korean(letter, include_phoneme=False):
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('letter={0}, not Korean.is_korean(letter, include_phoneme=False)'.format(letter))
 
                 if phoneme_onset is not None:
-                    if not isinstance(phoneme_onset, (str, unicode)):
-                        raise Korean.SyllableFailedException()
+                    if not isinstance(phoneme_onset, StrType):
+                        raise Korean.SyllableFailedException('phoneme_onset={0}, not isinstance(phoneme_onset, StrType)'.format(phoneme_onset))
 
                     phoneme_onset = phoneme_onset \
-                        if isinstance(phoneme_onset, unicode) else unicode(phoneme_onset)
+                        if isinstance(phoneme_onset, StrType) else StrType(phoneme_onset)
                     if len(phoneme_onset) != 1:
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_onset={}, len(phoneme_onset) != 1'.format(phoneme_onset))
 
                     if not Korean.is_korean_phoneme(phoneme_onset):
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_onset={0}not Korean.is_korean_phoneme(phoneme_onset)'.format(phoneme_onset))
 
                 if phoneme_nucleus is not None:
-                    if not isinstance(phoneme_nucleus, (str, unicode)):
-                        raise Korean.SyllableFailedException()
+                    if not isinstance(phoneme_nucleus, StrType):
+                        raise Korean.SyllableFailedException('phoneme_nucleus={0}, not isinstance(phoneme_nucleus, StrType)'.format(phoneme_nucleus))
 
                     phoneme_nucleus = phoneme_nucleus \
-                        if isinstance(phoneme_nucleus, unicode) else unicode(phoneme_nucleus)
+                        if isinstance(phoneme_nucleus, StrType) else StrType(phoneme_nucleus)
                     if len(phoneme_nucleus) != 1:
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_nucleus={0}, len(phoneme_nucleus) != 1'.format(phoneme_nucleus))
 
                     if not Korean.is_korean_phoneme(phoneme_nucleus):
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_nucleus={0}, not Korean.is_korean_phoneme(phoneme_nucleus)'.format(phoneme_nucleus))
 
                 if phoneme_coda is not None:
-                    if not isinstance(phoneme_coda, (str, unicode)):
-                        raise Korean.SyllableFailedException()
+                    if not isinstance(phoneme_coda, StrType):
+                        raise Korean.SyllableFailedException('phoneme_coda={0}, not isinstance(phoneme_coda, StrType)'.format(phoneme_coda))
 
                     phoneme_coda = phoneme_coda \
-                        if isinstance(phoneme_coda, unicode) else unicode(phoneme_coda)
+                        if isinstance(phoneme_coda, StrType) else StrType(phoneme_coda)
                     if len(phoneme_coda) != 1:
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_coda={0}, len(phoneme_coda) != 1'.format(phoneme_coda))
 
                     # space include
                     if not Korean.is_korean_phoneme(phoneme_coda, include_space=True):
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_coda={0}, not Korean.is_korean_phoneme(phoneme_coda, include_space=True)'.format(phoneme_coda))
 
             self.letter = letter
-            self.phoneme_onset = phoneme_onset if phoneme_onset is not u'' else None
-            self.phoneme_nucleus = phoneme_nucleus if phoneme_nucleus is not u'' else None
-            self.phoneme_coda = phoneme_coda if phoneme_coda is not u'' else None
+            self.phoneme_onset = phoneme_onset if phoneme_onset != '' else None
+            self.phoneme_nucleus = phoneme_nucleus if phoneme_nucleus != '' else None
+            self.phoneme_coda = phoneme_coda if phoneme_coda != '' else None
 
             if self.phoneme_onset or self.phoneme_nucleus or self.phoneme_coda:
                 self.combine()
@@ -229,33 +238,33 @@ class Korean(object):
             return Korean.Syllable(letter=self.letter)
 
         def __str__(self):
-            return str(self.letter)
+            return StrType(self.letter)
 
         def __unicode__(self):
-            return unicode(self.letter)
+            return StrType(self.letter)
 
         def combine(self):
-            phoneme_onset = self.phoneme_onset if self.phoneme_onset is not u' ' else u'ㅇ'
-            phoneme_nucleus = self.phoneme_nucleus if self.phoneme_nucleus is not u' ' else None
+            phoneme_onset = self.phoneme_onset if self.phoneme_onset != ' ' else 'ㅇ'
+            phoneme_nucleus = self.phoneme_nucleus if self.phoneme_nucleus != ' ' else None
             phoneme_coda = self.phoneme_coda
 
             # nuclues combine
-            if isinstance(phoneme_nucleus, (str, unicode)):
-                phoneme_nucleus = unicode(phoneme_nucleus)
+            if isinstance(phoneme_nucleus, StrType):
+                phoneme_nucleus = StrType(phoneme_nucleus)
 
                 # nuclues combine
                 if re.search(r'.\+.', phoneme_nucleus):
                     if phoneme_nucleus in Korean.phoneme_nucleus_combine_dict:
                         phoneme_nucleus = Korean.phoneme_nucleus_combine_dict[phoneme_nucleus]
                     else:
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_nucleus ={0}, not(phoneme_nucleus in Korean.phoneme_nucleus_combine_dict)'.format(phoneme_nucleus ))
 
                 # nuclues phonetic combine
                 elif re.search(r'..', phoneme_nucleus):
                     if phoneme_nucleus in Korean.phoneme_nucleus_phonetic_combine_dict:
                         phoneme_nucleus = Korean.phoneme_nucleus_phonetic_combine_dict[phoneme_nucleus]
                     else:
-                        raise Korean.SyllableFailedException()
+                        raise Korean.SyllableFailedException('phoneme_nucleus={0}, phoneme_nucleus in Korean.phoneme_nucleus_phonetic_combine_dict'.format(phoneme_nucleus))
 
             if self.letter is not None:
                 self.decompose()
@@ -267,28 +276,28 @@ class Korean(object):
             elif phoneme_onset is None or phoneme_nucleus is None:
 
                     if phoneme_onset:
-                        if phoneme_coda is None or phoneme_coda == u' ':
+                        if phoneme_coda is None or phoneme_coda == ' ':
                             # onset only
                             self.letter = phoneme_onset
                             if self.letter is None:
-                                raise Korean.SyllableFailedException()
+                                raise Korean.SyllableFailedException('self.letter={0}, self.letter is None'.format(self.letter))
                             return
                         else:
                             # onset + coda
                             if self.letter is None:
-                                raise Korean.SyllableFailedException()
+                                raise Korean.SyllableFailedException('self.letter={0}, self.letter is None'.format(self.letter))
                             return
 
                     elif phoneme_nucleus:
-                        if phoneme_coda is None or phoneme_coda == u' ':
+                        if phoneme_coda is None or phoneme_coda == ' ':
                             # nucleus only
                             self.letter = phoneme_nucleus
                             if self.letter is None:
-                                raise Korean.SyllableFailedException()
+                                raise Korean.SyllableFailedException('self.letter={0}, self.letter is None'.format(self.letter))
                             return
                         else:
                             # nucleus + coda
-                            phoneme_onset = u'ㅇ'
+                            phoneme_onset = 'ㅇ'
 
             try:
                 # if exists only onset
@@ -304,21 +313,23 @@ class Korean(object):
                     coda_size = Korean.phoneme_coda_list_len
 
                     code = (onset_index * nucleus_size * coda_size) + (nucleus_index * coda_size) + coda_index
-                    self.letter = unichr(code + Korean.unicode_base_code)
+                    self.letter = UniChr(code + Korean.unicode_base_code)
 
             except KeyError:
+                _, ke, _ = sys.exec_info()
+                print(ke)
                 raise Korean.SyllableFailedException()
 
             self.phoneme_onset = phoneme_onset
             self.phoneme_nucleus = phoneme_nucleus
             self.phoneme_coda = phoneme_coda
 
-            if self.phoneme_coda == u' ':
+            if self.phoneme_coda == ' ':
                 self.phoneme_coda = None
 
         def decompose(self):
-            if self.letter is None and self.letter == u' ':
-                raise Korean.SyllableFailedException()
+            if self.letter is None and self.letter == ' ':
+                raise Korean.SyllableFailedException("self.letter is None and self.letter == ' '")
 
             self.phoneme_onset = None
             self.phoneme_nucleus = None
@@ -337,19 +348,19 @@ class Korean(object):
                     self.phoneme_coda = self.letter
                     return
                 else:
-                    raise Korean.SyllableFailedException()
+                    raise Korean.SyllableFailedException('self.letter={0}; self.letter is not in Korean.phoneme_onset_dict, Korean.phoneme_nucleus_dict and Korean.phoneme_coda_dict.'.format(self.letter))
 
-            c1 = base_code / Korean.unicode_onset_offset
+            c1 = base_code // Korean.unicode_onset_offset
             self.phoneme_onset = Korean.phoneme_onset_list[c1]
 
-            c2 = (base_code - (Korean.unicode_onset_offset * c1)) / Korean.unicode_nucleus_offset
+            c2 = (base_code - (Korean.unicode_onset_offset * c1)) // Korean.unicode_nucleus_offset
             self.phoneme_nucleus = Korean.phoneme_nucleus_list[c2]
 
             c3 = (base_code - (Korean.unicode_onset_offset * c1) - (Korean.unicode_nucleus_offset * c2))
             self.phoneme_coda = Korean.phoneme_coda_list[c3]
 
             # blank check
-            if self.phoneme_coda == u' ':
+            if self.phoneme_coda == ' ':
                 self.phoneme_coda = None
 
         def is_completed(self):
@@ -371,12 +382,10 @@ class Korean(object):
             return self.phoneme_coda in Korean.phoneme_double_consonant_dict
 
     def __init__(self, text):
-        if isinstance(text, str):
-            self.text = unicode(text)
-        elif isinstance(text, unicode):
+        if isinstance(text, StrType):
             self.text = text
         else:
-            raise Korean.TypeErrorException()
+            raise Korean.TypeErrorException('text(={0})is not an instance of StrType. type(text)={1}'.format(text, type(text)))
 
         self.parse()
 
@@ -391,14 +400,9 @@ class Korean(object):
         return len(self.character_list)
 
     def __str__(self):
-        return str(self.text)
-
-    def __unicode__(self):
-        return unicode(self.text)
+        return StrType(self.text)
 
     def parse(self):
-        if isinstance(self.text, str):
-            self.text = unicode(self.text)
 
         self.character_list = []
 
@@ -411,10 +415,10 @@ class Korean(object):
         return self.character_list
 
     def join(self):
-        self.text = u''
+        self.text = ''
 
         for character in self.character_list:
-            self.text += unicode(character)
+            self.text += StrType(character)
 
         if not self.text:
             self.text = None
@@ -438,7 +442,7 @@ class Korean(object):
 
     @staticmethod
     def transform(sequence, filters):
-        if isinstance(sequence, (str, unicode)):
+        if isinstance(sequence, StrTypestr):
             sequence = Korean(sequence)
 
         if not hasattr(sequence, '__iter__') and not isinstance(sequence, collections.Sequence):
@@ -483,14 +487,14 @@ class Korean(object):
         include_space = kwargs.get('include_space', False)
         include_phoneme = kwargs.get('include_phoneme', True)
 
-        if not isinstance(text, unicode):
-            src = unicode(text)
+        if not isinstance(text, StrType):
+            src = StrType(text)
 
         range_syllable_max = 0xD7AF if include_legacy else 0xD7A3
         range_phoneme_max = 0x3131 if include_legacy else 0x3163
 
         for i in src:
-            if i == u' ':
+            if i == ' ':
                 if include_space:
                     continue
                 else:
@@ -516,13 +520,13 @@ class Korean(object):
         include_legacy = kwargs.get('include_legacy', False)
         include_space = kwargs.get('include_space', False)
 
-        if not isinstance(text, unicode):
-            src = unicode(text)
+        if not isinstance(text, StrType):
+            src = StrType(text)
 
         range_phoneme_max = 0x3131 if include_legacy else 0x3163
 
         for i in src:
-            if i == u' ':
+            if i == ' ': 
                 if include_space:
                     continue
                 else:

@@ -1,3 +1,13 @@
+* Byoungjin.ju (github.com/mapmiddle) 가 개발한, 한글 관련 라이브러리. 원본 주소는 https://github.com/mapmiddle/Korean.git
+
+    * yssgo 가 Python2.7 및 Python 3.12 용으로 개정함. six 패키지를 설치(pip install six) 해야 함 
+
+    * Python2.7 에서는 unicode 타입을, Python 3.12에서는 str 타입을 사용함.
+
+    * 이하는 README.md 원본. 아래 내용 중 변경해야 하는 부분은 Read_Me.py 참조.
+
+----
+
 * 한글과 관련된 여러가지 기능을 포함한 Python 라이브러리
 * Python 2.7 을 기준으로 개발
 
@@ -25,7 +35,7 @@
   >>> 안
   ```
   
-  * 초,중,종성 추출
+  * 초, 중, 종성 추출
   ```
   s = Korean('안녕세상아')
   print s[0].phoneme_onset
@@ -38,7 +48,7 @@
   >>> ㄴ
   ```
   
-  * 초,중,종성 변경
+  * 초, 중, 종성 변경
   ```
   s = Korean('안녕세상아')
   s[0].phoneme_coda = 'ㄹ'
@@ -60,7 +70,7 @@
 # CMU To Korean
 1. 소개
   * Carnegie Mellon University 에서 제공하는 영어 발음기호를 이용해 영어를 한글 발음으로 변환하는 클래스
-  * 발음 기호를 한글로 직역 했을때의 어색한 단어 일부 교정(Chocolate -> 초클랫, 초콜렛이 적합)
+  * 발음 기호를 한글로 직역했을 때 어색한 단어 일부 교정(Chocolate -> 초클랫, 초콜렛이 적합)
   * 가능한 한글 발음을 다수 생성 (RAINBOW -> 레인보, 레인보우, 렌보, 렌보우)
  
 2. 참조

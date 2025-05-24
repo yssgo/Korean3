@@ -1,27 +1,37 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals, print_function, division, absolute_import
+
 from korean import Korean
 import abc
 import sys
 import re
+import six
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
+if int(sys.version[0]) < 3:
+    StrType = unicode
+    UniChr = unichr
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+else:
+    StrType = str
+    UniChr = chr
 
 
 class CMUToKorean(object):
     class Condition(object):
+
+        @six.add_metaclass(abc.ABCMeta)
         class Interface(object):
-            __metaclass__ = abc.ABCMeta
 
             @abc.abstractmethod
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 pass
 
         class IsFirst(Interface):
             def __init__(self):
                 pass
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 if map_index[0] == 0:
                     if map_index[1] == 0:
                         return True
@@ -32,8 +42,8 @@ class CMUToKorean(object):
             def __init__(self):
                 pass
 
-            def test(self, map, map_index, lhs):
-                last_map_index = [len(map) - 1, len(map[len(map) - 1][0]) - 1]
+            def test(self, map_, map_index, lhs):
+                last_map_index = [len(map_) - 1, len(map_[len(map_) - 1][0]) - 1]
 
                 if map_index[0] == last_map_index[0]:
                     if map_index[1] == last_map_index[1]:
@@ -45,8 +55,8 @@ class CMUToKorean(object):
             def __init__(self):
                 pass
 
-            def test(self, map, map_index, lhs):
-                if map_index[0] == len(map) - 1:
+            def test(self, map_, map_index, lhs):
+                if map_index[0] == len(map_) - 1:
                     return True
 
                 return False
@@ -55,11 +65,11 @@ class CMUToKorean(object):
             def __init__(self):
                 pass
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0]
                 phonetic_index = map_index[1] + 1
 
-                for token_list in map[group_index:len(map)]:
+                for token_list in map_[group_index:len(map_)]:
                     phonetic_list = token_list[0]
                     for phonetic in phonetic_list[phonetic_index:len(phonetic_list)]:
                         m = re.match(r'(\D+)(\d)?([!])?', phonetic)
@@ -75,11 +85,11 @@ class CMUToKorean(object):
             def __init__(self):
                 pass
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0]
                 phonetic_index = map_index[1] + 1
 
-                for token_list in map[group_index:len(map)]:
+                for token_list in map_[group_index:len(map_)]:
                     phonetic_list = token_list[0]
                     for phonetic in phonetic_list[phonetic_index:len(phonetic_list)]:
                         m = re.match(r'(\D+)(\d)?([!])?', phonetic)
@@ -99,11 +109,11 @@ class CMUToKorean(object):
             def __init__(self, phonetic):
                 self.phonetic = phonetic
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0]
                 phonetic_index = map_index[1] + 1
 
-                for token_list in map[group_index:len(map)]:
+                for token_list in map_[group_index:len(map_)]:
                     phonetic_list = token_list[0]
                     for phonetic in phonetic_list[phonetic_index:len(phonetic_list)]:
                         m = re.match(r'(\D+)(\d)?([!])?', phonetic)
@@ -122,7 +132,7 @@ class CMUToKorean(object):
             def __init__(self):
                 pass
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0]
 
                 if map_index[1] == 0:
@@ -130,11 +140,11 @@ class CMUToKorean(object):
                         return False
 
                     group_index -= 1
-                    phonetic_index = len(map[group_index][0]) - 1
+                    phonetic_index = len(map_[group_index][0]) - 1
                 else:
                     phonetic_index = map_index[1] - 1
 
-                phonetic = map[group_index][0][phonetic_index]
+                phonetic = map_[group_index][0][phonetic_index]
                 m = re.match(r'(\D+)(\d)?([!])?', phonetic)
                 symbol = m.groups()[0]
 
@@ -149,7 +159,7 @@ class CMUToKorean(object):
             def __init__(self, phonetic):
                 self.phonetic = phonetic
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0]
 
                 if map_index[1] == 0:
@@ -157,11 +167,11 @@ class CMUToKorean(object):
                         return False
 
                     group_index -= 1
-                    phonetic_index = len(map[group_index][0]) - 1
+                    phonetic_index = len(map_[group_index][0]) - 1
                 else:
                     phonetic_index = map_index[1] - 1
 
-                phonetic = map[group_index][0][phonetic_index]
+                phonetic = map_[group_index][0][phonetic_index]
                 m = re.match(r'(\D+)(\d)?([!])?', phonetic)
                 symbol = m.groups()[0]
 
@@ -176,11 +186,11 @@ class CMUToKorean(object):
             def __init__(self, korean):
                 self.korean = korean
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 found = False
                 i = 0
                 for i in range(1, len(lhs) + 1):
-                    if re.search(unicode(r'[ㄱ-ㅎㅏ-ㅣ가-힣]+'), lhs[-i]):
+                    if re.search(StrType(r'[ㄱ-ㅎㅏ-ㅣ가-힣]+'), lhs[-i]):
                         found = True
                         break
 
@@ -198,10 +208,10 @@ class CMUToKorean(object):
             def __init__(self, alphabet):
                 self.alphabet = alphabet
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0]
 
-                if re.search(self.alphabet, map[group_index][1]):
+                if re.search(self.alphabet, map_[group_index][1]):
                     return True
 
                 return False
@@ -212,9 +222,9 @@ class CMUToKorean(object):
             def __init__(self, regex):
                 self.regex = regex
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0]
-                if re.search(self.regex, u''.join(map[group_index][0])):
+                if re.search(self.regex, ''.join(map_[group_index][0])):
                     return True
 
                 return False
@@ -225,9 +235,9 @@ class CMUToKorean(object):
             def __init__(self, regex):
                 self.regex = regex
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0]
-                if re.search(self.regex, u''.join(map[group_index][1])):
+                if re.search(self.regex, ''.join(map_[group_index][1])):
                     return True
 
                 return False
@@ -238,13 +248,13 @@ class CMUToKorean(object):
             def __init__(self, regex):
                 self.regex = regex
 
-            def test(self, map, map_index, lhs):
+            def test(self, map_, map_index, lhs):
                 group_index = map_index[0] + 1
 
-                if len(map) <= group_index:
+                if len(map_) <= group_index:
                     return False
 
-                if re.search(self.regex, u''.join(map[group_index][1])):
+                if re.search(self.regex, ''.join(map_[group_index][1])):
                     return True
 
                 return False
@@ -265,323 +275,323 @@ class CMUToKorean(object):
                 return self
 
     vowel_to_korean_dict = {
-        u'AA': [
+        'AA': [
             Control
-                .IF(Condition.IsExistsMappingWord(u'O'), [u'오', u'어', u'아'])
-                .ELIF(Condition.IsFirst(), u'아')
-                .ELIF(Condition.IsLast(), [u'아', u'어'])
-                .ELSE([u'아', u'어'])
+                .IF(Condition.IsExistsMappingWord('O'), ['오', '어', '아'])
+                .ELIF(Condition.IsFirst(), '아')
+                .ELIF(Condition.IsLast(), ['아', '어'])
+                .ELSE(['아', '어'])
         ],
 
-        u'AO': [u'오', u'어'],
-        u'AE': [u'애'],
-        u'AY': [u'아이', u'애이', u'아이+', u'애이+'],
+        'AO': ['오', '어'],
+        'AE': ['애'],
+        'AY': ['아이', '애이', '아이+', '애이+'],
 
-        u'AH': [
+        'AH': [
             Control
                 .IF(Condition.IsFirst(),
                     Control
-                    .IF(Condition.IsExistsMappingWord(u'AU'), u'어')
-                    .ELIF(Condition.IsExistsBackInPhonetic(u'Z'), [u'아', u'어', u'애'])
-                    .ELSE([u'어', u'애']))
-                .ELIF(Condition.IsLast(), [u'아', u'어'])
-                .ELIF(Condition.IsExistsMappingWord(u'EI'), [u'에이', u'이'])
-                .ELIF(Condition.IsExistsMappingWord(u'IU'), [u'우', u'어'])
-                .ELIF(Condition.IsExistsMappingWord(u'IO'), [u'어', u'오', u'아'])
-                .ELIF(Condition.IsExistsMappingWord(u'UA'), [u'어', u'아'])
+                    .IF(Condition.IsExistsMappingWord('AU'), '어')
+                    .ELIF(Condition.IsExistsBackInPhonetic('Z'), ['아', '어', '애'])
+                    .ELSE(['어', '애']))
+                .ELIF(Condition.IsLast(), ['아', '어'])
+                .ELIF(Condition.IsExistsMappingWord('EI'), ['에이', '이'])
+                .ELIF(Condition.IsExistsMappingWord('IU'), ['우', '어'])
+                .ELIF(Condition.IsExistsMappingWord('IO'), ['어', '오', '아'])
+                .ELIF(Condition.IsExistsMappingWord('UA'), ['어', '아'])
                 .ELSE(
                     Control
-                    .IF(Condition.IsExistsMappingWord(u'A'),
+                    .IF(Condition.IsExistsMappingWord('A'),
                         Control
                         .IF(Condition.IsNotExistsLastVowel(),
                             Control
-                            .IF(Condition.RegexWordNextGroup(r'.E'), [u'애', u'이'])
-                            .ELSE([u'애', u'아']))
-                        .ELSE([u'애', u'아']))
-                    .ELIF(Condition.IsExistsMappingWord(u'E'),
+                            .IF(Condition.RegexWordNextGroup(r'.E'), ['애', '이'])
+                            .ELSE(['애', '아']))
+                        .ELSE(['애', '아']))
+                    .ELIF(Condition.IsExistsMappingWord('E'),
                           Control
-                          .IF(Condition.IsExistsFrontInPhonetic(u'N'), [u'에', u'으'])
-                          .ELSE([u'에', u'어']))
-                    .ELIF(Condition.IsExistsMappingWord(u'U'), [u'어', u'우'])
-                    .ELIF(Condition.IsExistsMappingWord(u'O'), [u'오', u'어', u'아'])
-                    .ELIF(Condition.IsExistsMappingWord(u'I'),
+                          .IF(Condition.IsExistsFrontInPhonetic('N'), ['에', '으'])
+                          .ELSE(['에', '어']))
+                    .ELIF(Condition.IsExistsMappingWord('U'), ['어', '우'])
+                    .ELIF(Condition.IsExistsMappingWord('O'), ['오', '어', '아'])
+                    .ELIF(Condition.IsExistsMappingWord('I'),
                           Control
-                          .IF(Condition.IsNotExistsLastVowel(), [u'이', u'으'])
-                          .ELSE(u'이'))
+                          .IF(Condition.IsNotExistsLastVowel(), ['이', '으'])
+                          .ELSE('이'))
                 )
         ],
 
-        u'AW': [u'아우', u'오우', u'아우+', u'오우+'],
+        'AW': ['아우', '오우', '아우+', '오우+'],
 
-        u'EH': [u'에'],
+        'EH': ['에'],
 
-        u'ER': [
+        'ER': [
             Control
-                .IF(Condition.IsLast(), [u'어', u'얼'])
-                .ELIF(Condition.IsExistsFrontInVowel(), u'어/ㄹ')
-                .ELSE(u'어'),
+                .IF(Condition.IsLast(), ['어', '얼'])
+                .ELIF(Condition.IsExistsFrontInVowel(), '어/ㄹ')
+                .ELSE('어'),
 
             Control
-                .IF(Condition.IsExistsMappingWord(u'OR'),
+                .IF(Condition.IsExistsMappingWord('OR'),
                     Control
-                    .IF(Condition.IsLast(), [u'오', u'올'])
-                    .ELIF(Condition.IsExistsFrontInVowel(), u'오/ㄹ')
-                    .ELSE(u'오'))
+                    .IF(Condition.IsLast(), ['오', '올'])
+                    .ELIF(Condition.IsExistsFrontInVowel(), '오/ㄹ')
+                    .ELSE('오'))
         ],
 
-        u'EY': [u'에이', u'에이+', u'에'],
+        'EY': ['에이', '에이+', '에'],
 
-        u'EY2': [u'에이', u'에이+'],
+        'EY2': ['에이', '에이+'],
 
-        u'IH': [u'이'],
+        'IH': ['이'],
 
-        u'IY': [u'이', u'이+'],
+        'IY': ['이', '이+'],
 
-        u'UW': [u'우', u'우+'],
+        'UW': ['우', '우+'],
 
-        u'UH': [
+        'UH': [
             Control
-                .IF(Condition.IsExistsMappingWord(u'EU'), u'이우')
-                .ELIF(Condition.IsExistsMappingWord(u'UE'), u'우')
-                .ELIF(Condition.IsExistsMappingWord(u'OO'), u'우')
-                .ELIF(Condition.IsExistsMappingWord(u'OU'),
+                .IF(Condition.IsExistsMappingWord('EU'), '이우')
+                .ELIF(Condition.IsExistsMappingWord('UE'), '우')
+                .ELIF(Condition.IsExistsMappingWord('OO'), '우')
+                .ELIF(Condition.IsExistsMappingWord('OU'),
                       Control
-                      .IF(Condition.IsExistsBackInPhonetic(u'Y'), [u'우', u'오', u'어'])
-                      .ELIF(Condition.IsExistsBackInPhonetic(u'SH'), [u'우', u'오', u'어'])
-                      .ELSE([u'우', u'오', u'어']))
-                .ELIF(Condition.IsExistsMappingWord(u'U'),
+                      .IF(Condition.IsExistsBackInPhonetic('Y'), ['우', '오', '어'])
+                      .ELIF(Condition.IsExistsBackInPhonetic('SH'), ['우', '오', '어'])
+                      .ELSE(['우', '오', '어']))
+                .ELIF(Condition.IsExistsMappingWord('U'),
                       Control
-                      .IF(Condition.IsExistsBackInPhonetic(u'Y'), [u'우', u'오', u'어'])
-                      .ELIF(Condition.IsExistsBackInPhonetic(u'SH'), [u'우', u'오', u'어'])
-                      .ELSE([u'우', u'어']))
-                .ELSE([u'오', u'어'])
+                      .IF(Condition.IsExistsBackInPhonetic('Y'), ['우', '오', '어'])
+                      .ELIF(Condition.IsExistsBackInPhonetic('SH'), ['우', '오', '어'])
+                      .ELSE(['우', '어']))
+                .ELSE(['오', '어'])
         ],
 
-        u'OW': [
+        'OW': [
             Control
-                .IF(Condition.IsExistsMappingWord(u'OW'),
+                .IF(Condition.IsExistsMappingWord('OW'),
                     Control
-                    .IF(Condition.IsExistsFrontInVowel(), [u'오우+', u'오'])
-                    .ELSE([u'오우', u'오']))
-                .ELSE(u'오')
+                    .IF(Condition.IsExistsFrontInVowel(), ['오우+', '오'])
+                    .ELSE(['오우', '오']))
+                .ELSE('오')
         ],
 
-        u'OY': [u'오이', u'오이+']
-    }
+        'OY': ['오이', '오이+']
+    } # yapf: disable
 
     semivowel_to_korean_dict = {
-        u'W': [u'/우+', u'우+'],
-        u'Y': [u'이+']
-    }
+        'W': ['/우+', '우+'],
+        'Y': ['이+']
+    } # yapf: disable
 
     consonant_to_korean_dict = {
-        u'B': [u'ㅂ'],
-        u'D': [u'ㄷ'],
-        u'F': [u'ㅍ'],
-        u'G': [u'ㄱ'],
-        u'K': [u'ㅋ'],
-        u'M': [u'ㅁ'],
-        u'N': [u'ㄴ'],
-        u'P': [u'ㅍ'],
-        u'T': [u'ㅌ'],
-        u'V': [u'ㅂ'],
-        u'HH': [u'/ㅎ'],
+        'B': ['ㅂ'],
+        'D': ['ㄷ'],
+        'F': ['ㅍ'],
+        'G': ['ㄱ'],
+        'K': ['ㅋ'],
+        'M': ['ㅁ'],
+        'N': ['ㄴ'],
+        'P': ['ㅍ'],
+        'T': ['ㅌ'],
+        'V': ['ㅂ'],
+        'HH': ['/ㅎ'],
 
-        u'Z': [
+        'Z': [
             Control
-                .IF(Condition.IsExistsLatestKorean(u'ㄷ'), u'-/ㅈ')
-                .ELIF(Condition.IsExistsLatestKorean(u'ㅌ'), u'-/ㅊ')
-                .ELIF(Condition.IsLast(), [u'/ㅈ', u'/ㅅ'])
-                .ELSE(u'/ㅈ')
+                .IF(Condition.IsExistsLatestKorean('ㄷ'), '-/ㅈ')
+                .ELIF(Condition.IsExistsLatestKorean('ㅌ'), '-/ㅊ')
+                .ELIF(Condition.IsLast(), ['/ㅈ', '/ㅅ'])
+                .ELSE('/ㅈ')
         ],
 
-        u'L': [
+        'L': [
             Control
-                .IF(Condition.IsLast(), u'ㄹ')
-                .ELSE(u'ㄹ^')    # ex) 글랜
+                .IF(Condition.IsLast(), 'ㄹ')
+                .ELSE('ㄹ^')    # ex) 글랜
         ],
 
-        u'R': [
+        'R': [
             Control
                 .IF(Condition.IsExistsBackInVowel(),
                     Control
-                    .IF(Condition.IsExistsFrontInVowel(), u'/ㄹ')
+                    .IF(Condition.IsExistsFrontInVowel(), '/ㄹ')
                     .ELIF(Condition.IsLast(),
                           Control
-                          .IF(Condition.IsExistsLatestKorean(u'어'),
+                          .IF(Condition.IsExistsLatestKorean('어'),
                               Control
-                              .IF(Condition.RegexWordGroup(r'^.*RE$'), u'ㄹ')
-                              .ELSE([u'', u'ㄹ']))
-                          .ELIF(Condition.IsExistsLatestKorean(u'아'),
+                              .IF(Condition.RegexWordGroup(r'^.*RE$'), 'ㄹ')
+                              .ELSE(['', 'ㄹ']))
+                          .ELIF(Condition.IsExistsLatestKorean('아'),
                                 Control
-                                .IF(Condition.RegexWordGroup(r'^.*RE$'), u'ㄹ')
-                                .ELSE([u'', u'ㄹ']))
-                          .ELIF(Condition.IsExistsLatestKorean(u'오'), [u'ㄹ', u'얼'])
-                          .ELIF(Condition.IsExistsLatestKorean(u'우'), [u'어', u'얼'])
-                          .ELIF(Condition.IsExistsLatestKorean(u'에'), [u'어', u'얼'])
-                          .ELIF(Condition.IsExistsLatestKorean(u'애'), [u'어', u'얼'])
-                          .ELSE([u'ㄹ', u'어', u'얼']))
-                    .ELIF(Condition.IsExistsLatestKorean(u'어'), [u'', u'ㄹ'])
-                    .ELIF(Condition.IsExistsLatestKorean(u'아'), [u'', u'ㄹ'])
-                    .ELIF(Condition.IsExistsLatestKorean(u'오'), [u'', u'ㄹ'])
-                    .ELIF(Condition.IsExistsLatestKorean(u'우'), [u'', u'ㄹ'])
-                    .ELSE([u'ㄹ', u'어', u'얼']))
-                .ELSE(u'ㄹ')
+                                .IF(Condition.RegexWordGroup(r'^.*RE$'), 'ㄹ')
+                                .ELSE(['', 'ㄹ']))
+                          .ELIF(Condition.IsExistsLatestKorean('오'), ['ㄹ', '얼'])
+                          .ELIF(Condition.IsExistsLatestKorean('우'), ['어', '얼'])
+                          .ELIF(Condition.IsExistsLatestKorean('에'), ['어', '얼'])
+                          .ELIF(Condition.IsExistsLatestKorean('애'), ['어', '얼'])
+                          .ELSE(['ㄹ', '어', '얼']))
+                    .ELIF(Condition.IsExistsLatestKorean('어'), ['', 'ㄹ'])
+                    .ELIF(Condition.IsExistsLatestKorean('아'), ['', 'ㄹ'])
+                    .ELIF(Condition.IsExistsLatestKorean('오'), ['', 'ㄹ'])
+                    .ELIF(Condition.IsExistsLatestKorean('우'), ['', 'ㄹ'])
+                    .ELSE(['ㄹ', '어', '얼']))
+                .ELSE('ㄹ')
         ],
 
-        u'S': [
+        'S': [
             Control
                 .IF(Condition.IsFirst(),
                     Control
-                    .IF(Condition.IsExistsMappingWord(u'SS'), u'/ㅆ')
-                    .ELSE(u'/ㅅ'))
+                    .IF(Condition.IsExistsMappingWord('SS'), '/ㅆ')
+                    .ELSE('/ㅅ'))
                 .ELIF(
-                    Condition.IsExistsBackInPhonetic(u'T'),
+                    Condition.IsExistsBackInPhonetic('T'),
                     Control
-                    .IF(Condition.IsExistsMappingWord(u'Z'), [u'-/ㅊ', u'/ㅈ'])    # ex) BLITZKRIEG 리츠,맅즈
-                    .ELIF(Condition.IsLast(), u'-/ㅊ')
-                    .ELIF(Condition.RegexPhoneticGroup(r'.+TS.+'), [u'-/ㅊ', u'-/ㅅ'])    # ex) FTSM 프츠므, 프스므
+                    .IF(Condition.IsExistsMappingWord('Z'), ['-/ㅊ', '/ㅈ'])    # ex) BLITZKRIEG 리츠,맅즈
+                    .ELIF(Condition.IsLast(), '-/ㅊ')
+                    .ELIF(Condition.RegexPhoneticGroup(r'.+TS.+'), ['-/ㅊ', '-/ㅅ'])    # ex) FTSM 프츠므, 프스므
                     .ELIF(
                         Condition.RegexPhoneticGroup(r'.+TS'),
                         Control
-                            .IF(Condition.IsExistsFrontInVowel(), u'-/ㅅ')  # ex) ACCOUNTANCY AH0 K AW1 N T AH0 N T S IY2
-                            .ELSE(u'-/ㅊ')
+                            .IF(Condition.IsExistsFrontInVowel(), '-/ㅅ')  # ex) ACCOUNTANCY AH0 K AW1 N T AH0 N T S IY2
+                            .ELSE('-/ㅊ')
                     )
-                    .ELIF(Condition.IsExistsFrontInVowel(), [u'/ㅅ', u'-/ㅊ'])  # ex) BATSON 뱉슨, 배츤
-                    .ELIF(Condition.IsExistsFrontInPhonetic(u'T'), u'/ㅅ')    # ex) TST 트스트
-                    .ELIF(Condition.RegexPhoneticGroup(r'TS.+'), [u'-/ㅊ', u'/ㅅ'])    # ex) TSM 츠므,트스므
-                    .ELSE(u'-/ㅊ')
+                    .ELIF(Condition.IsExistsFrontInVowel(), ['/ㅅ', '-/ㅊ'])  # ex) BATSON 뱉슨, 배츤
+                    .ELIF(Condition.IsExistsFrontInPhonetic('T'), '/ㅅ')    # ex) TST 트스트
+                    .ELIF(Condition.RegexPhoneticGroup(r'TS.+'), ['-/ㅊ', '/ㅅ'])    # ex) TSM 츠므,트스므
+                    .ELSE('-/ㅊ')
                 )
 
-                .ELSE(u'/ㅅ')
+                .ELSE('/ㅅ')
         ],
 
-        u'NG': [
+        'NG': [
             Control
-                .IF(Condition.IsExistsFrontInVowel(), u'~ㅇㄱ')
-                .ELSE(u'~ㅇ')
+                .IF(Condition.IsExistsFrontInVowel(), '~ㅇㄱ')
+                .ELSE('~ㅇ')
         ],
 
-        u'SH': [u'/ㅅ#'],
+        'SH': ['/ㅅ#'],
 
-        u'CH': [
+        'CH': [
             Control
-                .IF(Condition.IsLast(), u'치')
+                .IF(Condition.IsLast(), '치')
                 .ELIF(Condition.IsLastGroup(),
                       Control
-                      .IF(Condition.RegexWordGroup(r'.*CHE.*'), u'치')
-                      .ELSE(u'/ㅊ'))
-                .ELSE(u'/ㅊ')
+                      .IF(Condition.RegexWordGroup(r'.*CHE.*'), '치')
+                      .ELSE('/ㅊ'))
+                .ELSE('/ㅊ')
         ],
 
-        u'DH': [
+        'DH': [
             Control
-                .IF(Condition.IsFirst(), u'ㄷ')
-                .ELIF(Condition.RegexWordNextGroup(r'^A'), u'/ㅅ')
-                .ELIF(Condition.IsExistsBackInPhonetic(u'S'), u'')  # 묵음
-                .ELIF(Condition.IsExistsBackInPhonetic(u'Z'), u'')  # 묵음
-                .ELIF(Condition.IsExistsBackInPhonetic(u'ER'), u'ㄷ')
-                .ELIF(Condition.IsExistsBackInPhonetic(u'OW'), u'ㄷ')
-                .ELIF(Condition.IsExistsBackInPhonetic(u'AH'), u'ㅅ')
-                .ELIF(Condition.IsExistsBackInPhonetic(u'IY'), u'ㅅ')
-                .ELIF(Condition.IsExistsBackInPhonetic(u'IH'), u'ㅅ')
-                .ELIF(Condition.IsExistsBackInPhonetic(u'Y'), u'ㅅ')
-                .ELSE([u'ㄷ', u'/ㅅ'])
+                .IF(Condition.IsFirst(), 'ㄷ')
+                .ELIF(Condition.RegexWordNextGroup(r'^A'), '/ㅅ')
+                .ELIF(Condition.IsExistsBackInPhonetic('S'), '')  # 묵음
+                .ELIF(Condition.IsExistsBackInPhonetic('Z'), '')  # 묵음
+                .ELIF(Condition.IsExistsBackInPhonetic('ER'), 'ㄷ')
+                .ELIF(Condition.IsExistsBackInPhonetic('OW'), 'ㄷ')
+                .ELIF(Condition.IsExistsBackInPhonetic('AH'), 'ㅅ')
+                .ELIF(Condition.IsExistsBackInPhonetic('IY'), 'ㅅ')
+                .ELIF(Condition.IsExistsBackInPhonetic('IH'), 'ㅅ')
+                .ELIF(Condition.IsExistsBackInPhonetic('Y'), 'ㅅ')
+                .ELSE(['ㄷ', '/ㅅ'])
         ],
 
-        u'JH': [
+        'JH': [
             Control
-                .IF(Condition.IsLast(), u'지')
-                .ELSE(u'/ㅈ')
+                .IF(Condition.IsLast(), '지')
+                .ELSE('/ㅈ')
         ],
 
-        u'TH': [
+        'TH': [
             Control
-                .IF(Condition.IsFirst(), u'/ㅅ')
-                .ELIF(Condition.IsNotExistsLastVowel(), u'/ㅅ')
+                .IF(Condition.IsFirst(), '/ㅅ')
+                .ELIF(Condition.IsNotExistsLastVowel(), '/ㅅ')
                 .ELSE(
                     Control
-                      .IF(Condition.IsExistsBackInPhonetic(u'S'), u'')
-                      .ELIF(Condition.IsExistsBackInPhonetic(u'Z'), u'')
-                      .ELSE(u'/ㅅ')
+                      .IF(Condition.IsExistsBackInPhonetic('S'), '')
+                      .ELIF(Condition.IsExistsBackInPhonetic('Z'), '')
+                      .ELSE('/ㅅ')
                 )
         ],
 
-        u'ZH': [
+        'ZH': [
             Control
                 .IF(Condition.IsFirst(),
                     Control
-                    .IF(Condition.IsExistsMappingWord('X'), u'/ㅅ#')
-                    .ELSE(u'/ㅈ#'))
+                    .IF(Condition.IsExistsMappingWord('X'), '/ㅅ#')
+                    .ELSE('/ㅈ#'))
                 .ELIF(Condition.IsExistsMappingWord('S'),
                       Control
-                      .IF(Condition.RegexWordNextGroup(r'^IA'), u'시')
-                      .ELSE(u'/ㅈ#'))
-                .ELSE(u'/ㅈ#')
+                      .IF(Condition.RegexWordNextGroup(r'^IA'), '시')
+                      .ELSE('/ㅈ#'))
+                .ELSE('/ㅈ#')
         ],
-    }
+    } # yapf: disable
 
     operation_set = (
-        u'/', u'~', u'+', u'-', u'^', u'#', u'?'
-    )
+        '/', '~', '+', '-', '^', '#', '?'
+    ) # yapf: disable
 
     alphabet_vowel_to_cmu_dict = {
-        u'A': u'AA',
-        u'E': u'EH',
-        u'I': u'IH',
-        u'O': u'AO',
-        u'U': u'UH',
-        u'W': u'W',
-        u'Y': u'Y',
-    }
+        'A': 'AA',
+        'E': 'EH',
+        'I': 'IH',
+        'O': 'AO',
+        'U': 'UH',
+        'W': 'W',
+        'Y': 'Y',
+    } # yapf: disable
 
     alphabet_consonant_set = (
-        u'B', u'C', u'D', u'F', u'G', u'H', u'J', u'K', u'L', u'M',
-        u'N', u'P', u'Q', u'R', u'S', u'T', u'V', u'X', u'Z'
-    )
+        'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M',
+        'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'X', 'Z'
+    ) # yapf: disable
 
     alphabet_vowel_set = (
-        u'A', u'E', u'I', u'O', u'U', u'W', u'Y'
-    )
+        'A', 'E', 'I', 'O', 'U', 'W', 'Y'
+    ) # yapf: disable
 
     korean_convert_sharp_dict = {
-        u'ㅏ': u'ㅑ',
-        u'ㅓ': u'ㅕ',
-        u'ㅗ': u'ㅛ',
-        u'ㅜ': u'ㅠ',
-        u'ㅐ': u'ㅒ',
-        u'ㅔ': u'ㅖ',
-        u'ㅡ': u'ㅟ',
-    }
+        'ㅏ': 'ㅑ',
+        'ㅓ': 'ㅕ',
+        'ㅗ': 'ㅛ',
+        'ㅜ': 'ㅠ',
+        'ㅐ': 'ㅒ',
+        'ㅔ': 'ㅖ',
+        'ㅡ': 'ㅟ',
+    } # yapf: disable
 
     korean_coda_sound = {
-        u'ㄱ': u'ㄱ', u'ㅋ': u'ㄱ',
-        u'ㄴ': u'ㄴ',
-        u'ㄷ': u'ㅅ', u'ㅌ': u'ㅅ', u'ㅅ': u'ㅅ',
-        u'ㅈ': u'ㄷ', u'ㅊ': u'ㄷ', u'ㅎ': u'ㄷ',
-        u'ㄹ': u'ㄹ',
-        u'ㅁ': u'ㅁ',
-        u'ㅂ': u'ㅂ', u'ㅍ': u'ㅂ',
-        u'ㅇ': u'ㅇ',
+        'ㄱ': 'ㄱ', 'ㅋ': 'ㄱ',
+        'ㄴ': 'ㄴ',
+        'ㄷ': 'ㅅ', 'ㅌ': 'ㅅ', 'ㅅ': 'ㅅ',
+        'ㅈ': 'ㄷ', 'ㅊ': 'ㄷ', 'ㅎ': 'ㄷ',
+        'ㄹ': 'ㄹ',
+        'ㅁ': 'ㅁ',
+        'ㅂ': 'ㅂ', 'ㅍ': 'ㅂ',
+        'ㅇ': 'ㅇ',
 
-        u'ㄲ': u'ㄱ',
-        u'ㅆ': u'ㅅ',
-    }
+        'ㄲ': 'ㄱ',
+        'ㅆ': 'ㅅ',
+    } # yapf: disable
 
     @staticmethod
     def convert(word, phonetic, **kwargs):
-        word = unicode(word).upper()
-        phonetic = unicode(phonetic).upper()
+        word = StrType(word).upper()
+        phonetic = StrType(phonetic).upper()
 
-        map = CMUToKorean._phonetic_word_mapping(word, phonetic)
-        if not map:
+        map_ = CMUToKorean._phonetic_word_mapping(word, phonetic)
+        if not map_:
             return None
 
         combination = []
         map_index = [0, 0]
 
-        for group in map:
-            if CMUToKorean._pattern_exception(map, map_index[0], combination):
+        for group in map_:
+            if CMUToKorean._pattern_exception(map_, map_index[0], combination):
                 map_index[0] += 1
                 map_index[1] = 0
                 continue
@@ -612,15 +622,15 @@ class CMUToKorean(object):
                     value = ref_dict[symbol]
 
                 # op code '?'가 존재시 생략도 추가한다
-                if op == u'?':
+                if op == '?':
                     clone = []
                     clone.extend(value)
-                    clone.append(u'')
+                    clone.append('')
                     value = clone
 
                 # combination
                 # combination = value_list * combination
-                combination = CMUToKorean._join_process(map, map_index, combination, value)
+                combination = CMUToKorean._join_process(map_, map_index, combination, value)
                 map_index[1] += 1
 
             map_index[0] += 1
@@ -651,10 +661,10 @@ class CMUToKorean(object):
                         r1.append(r2)
             else:
                 if not lhs:
-                    lhs = u''
+                    lhs = ''
 
                 if not rhs:
-                    rhs = u''
+                    rhs = ''
 
                 return [lhs + rhs]
 
@@ -679,7 +689,7 @@ class CMUToKorean(object):
             for o in src_onset:
                 for n in src_nucleus:
                     for c in src_coda:
-                        r.append(unicode(Korean.Syllable(phoneme_onset=o, phoneme_nucleus=n, phoneme_coda=c)))
+                        r.append(StrType(Korean.Syllable(phoneme_onset=o, phoneme_nucleus=n, phoneme_coda=c)))
 
             return join(dest, r)
 
@@ -706,25 +716,25 @@ class CMUToKorean(object):
                     # op code 라면
                     if op:
                         # 해당 자음은 무조건 밑받침
-                        if op == u'~':
+                        if op == '~':
                             # 자음만 가능
                             if not cur.is_completed() and not cur.phoneme_nucleus:
                                 # 캐리의 초성과 조합배열이 존재 안한다면
                                 if not carry_onset and len(combination) == 0:
-                                    carry_onset = unicode(cur)
+                                    carry_onset = StrType(cur)
 
                                 # 캐리의 초성, 중성이 존재 안한다면
                                 if not carry_onset and not carry_nucleus:
                                     # 각 조합의 마지막에 종성을 넣는다
                                     for j in range(0, len(combination)):
                                         last_elem = Korean.Syllable(letter=combination[j][-1])
-                                        last_elem.phoneme_coda = unicode(cur)
+                                        last_elem.phoneme_coda = StrType(cur)
                                         last_elem.combine()
                                         combination[j] = combination[j][:-1]
-                                        combination[j] += unicode(last_elem)
+                                        combination[j] += StrType(last_elem)
 
                                 else:
-                                    carry_coda = unicode(cur)
+                                    carry_coda = StrType(cur)
                             else:
                                 # 완성형 글자라면 예외
                                 # middle.exception
@@ -732,7 +742,7 @@ class CMUToKorean(object):
                                 continue
 
                         # 종성+모음 조합에서 종성이 초성에 한번 더 나타나게 한다
-                        elif op == u'^':
+                        elif op == '^':
                             if not carry_coda:
                                 # middle.exception
                                 # 캐리에 종성이 존재해야만 한다
@@ -748,7 +758,7 @@ class CMUToKorean(object):
 
                             # 현재 초성+중성 조합일 경우 초성이 'ㅇ' 이 아니라면
                             if cur.phoneme_onset and cur.phoneme_nucleus:
-                                if cur.phoneme_onset != u'ㅇ':
+                                if cur.phoneme_onset != 'ㅇ':
                                     op = None
                                     continue
 
@@ -757,14 +767,15 @@ class CMUToKorean(object):
                             combination = syllable_join(combination,
                                                         carry_onset,
                                                         carry_nucleus,
-                                                        carry_coda)
+                                                        carry_coda
+                            ) # yapf: disable
 
                             carry_onset = tmp_coda
                             carry_nucleus = cur.phoneme_nucleus
                             carry_coda = cur.phoneme_coda
 
                         # 캐리와 합성
-                        elif op == u'+':
+                        elif op == '+':
                             # 중성 합성만 가능하다
                             if carry_nucleus and cur.phoneme_nucleus:
                                 if carry_coda:
@@ -772,7 +783,7 @@ class CMUToKorean(object):
                                     op = None
                                     continue
 
-                                if cur.phoneme_onset and cur.phoneme_onset != u'ㅇ':
+                                if cur.phoneme_onset and cur.phoneme_onset != 'ㅇ':
                                     # 현재 글자에 초성이 존재하지만 'ㅇ' 이 아닐경우
                                     op = None
                                     continue
@@ -805,14 +816,15 @@ class CMUToKorean(object):
                                 continue
 
                         # ㅅ# -> 쉬,샤, ㅈ# -> 쥐,쟈
-                        elif op == u'#':
+                        elif op == '#':
                             # 캐리가 초성+중성 형태라면
                             if carry_onset and carry_nucleus and not carry_coda:
                                 # 조합후 다시 처리
                                 combination = syllable_join(combination,
                                                             carry_onset,
                                                             carry_nucleus,
-                                                            carry_coda)
+                                                            carry_coda
+                                ) # yapf: disable
 
                                 carry_onset = None
                                 carry_nucleus = None
@@ -821,7 +833,7 @@ class CMUToKorean(object):
 
                             # 캐리의 초성이 존재 하지 않는다면
                             if not carry_onset:
-                                carry_onset = u'ㅇ'
+                                carry_onset = 'ㅇ'
 
                             # 캐리의 종성이 존재한다면
                             if carry_coda:
@@ -832,14 +844,15 @@ class CMUToKorean(object):
                                 combination = syllable_join(combination,
                                                             carry_onset,
                                                             carry_nucleus,
-                                                            carry_coda)
+                                                            carry_coda
+                                ) # yapf: disable
 
                                 carry_onset = tmp_coda
                                 carry_coda = None
 
                             # 현재 모음이 존재하고 초성이 'ㅇ' 일때
                             # 또는 모음만 존재할때
-                            if (cur.phoneme_nucleus and cur.phoneme_onset == u'ㅇ')\
+                            if (cur.phoneme_nucleus and cur.phoneme_onset == 'ㅇ')\
                                     or (cur.phoneme_nucleus and not cur.phoneme_onset):
 
                                 if cur.phoneme_nucleus in CMUToKorean.korean_convert_sharp_dict:
@@ -854,12 +867,13 @@ class CMUToKorean(object):
                             # 현재 완성형 글자이면
                             elif cur.is_completed():
                                 # ㅅ#가 -> 쉬가
-                                carry_nucleus = [u'ㅟ', u'ㅠ'] if len(combination) == 0 else u'ㅟ'
+                                carry_nucleus = ['ㅟ', 'ㅠ'] if len(combination) == 0 else 'ㅟ'
 
                                 combination = syllable_join(combination,
                                                             carry_onset,
                                                             carry_nucleus,
-                                                            carry_coda)
+                                                            carry_coda
+                                ) # yapf: disable
 
                                 carry_onset = cur.phoneme_onset
                                 carry_nucleus = cur.phoneme_nucleus
@@ -867,14 +881,15 @@ class CMUToKorean(object):
 
                             # 현재 자음만 존재한다면
                             else:
-                                carry_nucleus = [u'ㅟ', u'ㅠ'] if len(combination) == 0 else u'ㅟ'
+                                carry_nucleus = ['ㅟ', 'ㅠ'] if len(combination) == 0 else 'ㅟ'
 
                                 # 자음이 연속 된다면
                                 if consonant_continuous:
                                     combination = syllable_join(combination,
                                                                 carry_onset,
                                                                 carry_nucleus,
-                                                                carry_coda)
+                                                                carry_coda
+                                    ) # yapf: disable
 
                                     carry_onset = cur.phoneme_onset
                                     carry_nucleus = cur.phoneme_nucleus
@@ -887,7 +902,7 @@ class CMUToKorean(object):
                         op = None
 
                     # 현재글자가 완성형이고 초성이 'ㅇ' 이면
-                    elif cur.is_completed() and cur.phoneme_onset == u'ㅇ':
+                    elif cur.is_completed() and cur.phoneme_onset == 'ㅇ':
 
                         # 캐리가 존재하지 않으면
                         if not carry_onset and not carry_nucleus and not carry_coda:
@@ -909,7 +924,8 @@ class CMUToKorean(object):
                             combination = syllable_join(combination,
                                                         carry_onset,
                                                         carry_nucleus,
-                                                        carry_coda)
+                                                        carry_coda
+                            ) # yapf: disable
 
                             carry_onset = tmp_coda
                             carry_nucleus = cur.phoneme_nucleus
@@ -925,7 +941,8 @@ class CMUToKorean(object):
                             combination = syllable_join(combination,
                                                         carry_onset,
                                                         carry_nucleus,
-                                                        carry_coda)
+                                                        carry_coda
+                            ) # yapf: disable
 
                             carry_onset = cur.phoneme_onset
                             carry_nucleus = cur.phoneme_nucleus
@@ -938,7 +955,7 @@ class CMUToKorean(object):
 
                         # 캐리에 초성이 존재하지 않으면
                         if not carry_onset:
-                            carry_onset = u'ㅇ'
+                            carry_onset = 'ㅇ'
 
                         # 캐리에 초성/중성이 존재한다면
                         if carry_onset and carry_nucleus:
@@ -948,12 +965,13 @@ class CMUToKorean(object):
                                 tmp_onset = carry_coda
                                 carry_coda = None
                             else:
-                                tmp_onset = u'ㅇ'
+                                tmp_onset = 'ㅇ'
 
                             combination = syllable_join(combination,
                                                         carry_onset,
                                                         carry_nucleus,
-                                                        carry_coda)
+                                                        carry_coda
+                            ) # yapf: disable
 
                             carry_onset = tmp_onset
                             carry_nucleus = cur.phoneme_nucleus
@@ -979,10 +997,11 @@ class CMUToKorean(object):
                                 combination = syllable_join(combination,
                                                             carry_onset,
                                                             carry_nucleus,
-                                                            carry_coda)
+                                                            carry_coda
+                                ) # yapf: disable
 
                                 carry_onset = tmp_onset
-                                carry_nucleus = u'ㅡ'
+                                carry_nucleus = 'ㅡ'
                                 carry_coda = cur.phoneme_onset
                                 consonant_combined = True
 
@@ -990,7 +1009,8 @@ class CMUToKorean(object):
                                 combination = syllable_join(combination,
                                                             carry_onset,
                                                             carry_nucleus,
-                                                            carry_coda)
+                                                            carry_coda
+                                ) # yapf: disable
 
                                 carry_onset = cur.phoneme_onset
                                 carry_nucleus = cur.phoneme_nucleus
@@ -1001,7 +1021,7 @@ class CMUToKorean(object):
 
                             else:
                                 # '으' 형태로 만든다 (T L -> 틀)
-                                carry_nucleus = u'ㅡ'
+                                carry_nucleus = 'ㅡ'
                                 carry_coda = cur.phoneme_onset
                                 consonant_combined = True
                         else:
@@ -1013,7 +1033,8 @@ class CMUToKorean(object):
                             combination = syllable_join(combination,
                                                         carry_onset,
                                                         carry_nucleus,
-                                                        carry_coda)
+                                                        carry_coda
+                            ) # yapf: disable
 
                         carry_onset = cur.phoneme_onset
                         carry_nucleus = cur.phoneme_nucleus
@@ -1026,28 +1047,29 @@ class CMUToKorean(object):
 
                 else:
                     # 이전의 op code가 # 이었다면
-                    if op == u'#':
+                    if op == '#':
                         # 캐리에 초성만 존재시
                         if carry_onset and not carry_nucleus and not carry_coda:
-                            carry_nucleus = [u'ㅟ', u'ㅠ'] if len(combination) == 0 else u'ㅟ'
+                            carry_nucleus = ['ㅟ', 'ㅠ'] if len(combination) == 0 else 'ㅟ'
 
                     op = None
 
                     # 캐리를 강제 조합한다
-                    if cur == u'/':
+                    if cur == '/':
                         if carry_onset:
                             # 중성이 존재 하지않으면
                             if not carry_nucleus:
-                                carry_nucleus = u'ㅡ'
+                                carry_nucleus = 'ㅡ'
 
                             # 초성이 존재 안한다면
                             if not carry_onset:
-                                carry_onset = u'ㅇ'
+                                carry_onset = 'ㅇ'
 
                             combination = syllable_join(combination,
                                                         carry_onset,
                                                         carry_nucleus,
-                                                        carry_coda)
+                                                        carry_coda
+                            ) # yapf: disable
 
                             carry_onset = None
                             carry_nucleus = None
@@ -1055,7 +1077,7 @@ class CMUToKorean(object):
                             consonant_continuous = False
 
                     # 이전 캐리를 지운다
-                    elif cur == u'-':
+                    elif cur == '-':
                         if carry_coda:
                             carry_coda = None
                         elif carry_nucleus:
@@ -1064,7 +1086,7 @@ class CMUToKorean(object):
                             carry_onset = None
 
                     # 무시
-                    elif cur == u'?':
+                    elif cur == '?':
                         pass
 
                     # op code를 저장
@@ -1079,19 +1101,20 @@ class CMUToKorean(object):
                 if not carry_nucleus:
 
                     # 이전의 op code가 # 이었다면
-                    if op == u'#':
-                        carry_nucleus = [u'ㅟ', u'ㅠ'] if len(combination) == 0 else u'ㅟ'
+                    if op == '#':
+                        carry_nucleus = ['ㅟ', 'ㅠ'] if len(combination) == 0 else 'ㅟ'
                     else:
-                        carry_nucleus = u'ㅡ'
+                        carry_nucleus = 'ㅡ'
 
                 # 초성이 존재 안한다면
                 if not carry_onset:
-                    carry_onset = u'ㅇ'
+                    carry_onset = 'ㅇ'
 
                 combination = syllable_join(combination,
                                             carry_onset,
                                             carry_nucleus,
-                                            carry_coda)
+                                            carry_coda
+                ) # yapf: disable
 
             pass1_result.extend(combination)
 
@@ -1112,7 +1135,7 @@ class CMUToKorean(object):
 
                 # 종성이 존재하지 않으면
                 if not cur.phoneme_coda:
-                    combination = join(combination, unicode(cur))
+                    combination = join(combination, StrType(cur))
                     continue
 
                 # 종성 발음
@@ -1126,25 +1149,28 @@ class CMUToKorean(object):
 
                 sound_syllable = Korean.Syllable(phoneme_onset=cur.phoneme_onset,
                                                  phoneme_nucleus=cur.phoneme_nucleus,
-                                                 phoneme_coda=sound_coda)
+                                                 phoneme_coda=sound_coda
+                ) # yapf: disable
 
                 # ㅎ,ㅅ,ㅆ,ㅈ,ㅊ 은 받침으로 불가능
-                if cur.phoneme_coda in (u'ㅎ', u'ㅅ', u'ㅆ', u'ㅈ', u'ㅊ'):
+                if cur.phoneme_coda in ('ㅎ', 'ㅅ', 'ㅆ', 'ㅈ', 'ㅊ'):
                     syllable1 = Korean.Syllable(phoneme_onset=cur.phoneme_onset,
                                                 phoneme_nucleus=cur.phoneme_nucleus,
-                                                phoneme_coda=None)
+                                                phoneme_coda=None
+                    ) # yapf: disable
 
                     syllable2 = Korean.Syllable(phoneme_onset=cur.phoneme_coda,
-                                                phoneme_nucleus=u'ㅡ',
-                                                phoneme_coda=None)
+                                                phoneme_nucleus='ㅡ',
+                                                phoneme_coda=None
+                    ) # yapf: disable
 
-                    value = unicode(syllable1) + unicode(syllable2)
+                    value = StrType(syllable1) + StrType(syllable2)
                 else:
                     prolonged = False
 
                     while True:
                         # ㅁㄴㅇㄹ은 연음하지 않음
-                        if cur.phoneme_coda in (u'ㅁ', u'ㄴ', u'ㅇ', u'ㄹ'):
+                        if cur.phoneme_coda in ('ㅁ', 'ㄴ', 'ㅇ', 'ㄹ'):
                             break
 
                         next = korean[i + 1] if i + 1 < korean_len else None
@@ -1154,32 +1180,32 @@ class CMUToKorean(object):
                                 break
 
                             # 종성이 ㅋ 이고 다음 초성이 ㅅ 이면 연음하지 않음
-                            elif cur.phoneme_coda == u'ㅋ' and next.phoneme_onset == u'ㅅ':
+                            elif cur.phoneme_coda == 'ㅋ' and next.phoneme_onset == 'ㅅ':
                                 break
 
                             # 현재 인덱스가 뒤에서 두번째 일때
                             elif i == (korean_len - 2):
                                 # 종성이 ㅋ 일때 그라면
-                                if cur.phoneme_coda == u'ㅋ':
-                                    if next.phoneme_onset == u'ㄱ' and next.phoneme_coda == u'ㅡ':
+                                if cur.phoneme_coda == 'ㅋ':
+                                    if next.phoneme_onset == 'ㄱ' and next.phoneme_coda == 'ㅡ':
                                         break
 
                                 # 종성이 ㅌ 일때 드,츠 라면
-                                if cur.phoneme_coda == u'ㅌ':
-                                    if next.phoneme_onset == u'ㄷ' and next.phoneme_coda == u'ㅡ':
+                                if cur.phoneme_coda == 'ㅌ':
+                                    if next.phoneme_onset == 'ㄷ' and next.phoneme_coda == 'ㅡ':
                                         break
 
-                                    if next.phoneme_onset == u'ㅊ' and next.phoneme_coda == u'ㅡ':
+                                    if next.phoneme_onset == 'ㅊ' and next.phoneme_coda == 'ㅡ':
                                         break
 
                                 # 종성이 ㅂ 일때 플 라면
-                                if cur.phoneme_coda == u'ㅂ':
-                                    if next.phoneme_onset == u'ㅍ' and next.phoneme_coda == u'ㅡ':
+                                if cur.phoneme_coda == 'ㅂ':
+                                    if next.phoneme_onset == 'ㅍ' and next.phoneme_coda == 'ㅡ':
                                         break
 
                                 # 종성이 ㄷ 일때 플 라면
-                                if cur.phoneme_coda == u'ㄷ':
-                                    if next.phoneme_onset == u'ㅌ' and next.phoneme_coda == u'ㅡ':
+                                if cur.phoneme_coda == 'ㄷ':
+                                    if next.phoneme_onset == 'ㅌ' and next.phoneme_coda == 'ㅡ':
                                         break
 
                         prolonged = True
@@ -1188,15 +1214,17 @@ class CMUToKorean(object):
                     if prolonged:
                         syllable1 = Korean.Syllable(phoneme_onset=cur.phoneme_onset,
                                                     phoneme_nucleus=cur.phoneme_nucleus,
-                                                    phoneme_coda=None)
+                                                    phoneme_coda=None
+                        ) # yapf: disable
 
                         syllable2 = Korean.Syllable(phoneme_onset=cur.phoneme_coda,
-                                                    phoneme_nucleus=u'ㅡ',
-                                                    phoneme_coda=None)
+                                                    phoneme_nucleus='ㅡ',
+                                                    phoneme_coda=Nonei
+                        ) # yapf: disable
 
-                        value = [unicode(sound_syllable), unicode(syllable1) + unicode(syllable2)]
+                        value = [StrType(sound_syllable), StrType(syllable1) + StrType(syllable2)]
                     else:
-                        value = unicode(sound_syllable)
+                        value = StrType(sound_syllable)
 
                 """
                 # middle.comment
@@ -1204,7 +1232,7 @@ class CMUToKorean(object):
 
                 # 처음이면 연음하지 않는다
                 if i == 0:
-                    value = unicode(sound_syllable)
+                    value = StrType(sound_syllable)
 
                 # 마지막이면
                 # elif i == (korean_len - 1):
@@ -1213,28 +1241,32 @@ class CMUToKorean(object):
                     # ㅎ,ㅅ,ㅆ,ㅈ,ㅊ 은 받침으로 불가능
                     # ㅃ,ㄲ,ㄸ,ㅉ 는 애초에 존재하지 않음
 
-                    if cur.phoneme_coda in (u'ㅎ', u'ㅅ', u'ㅆ', u'ㅈ', u'ㅊ'):
+                    if cur.phoneme_coda in ('ㅎ', 'ㅅ', 'ㅆ', 'ㅈ', 'ㅊ'):
                         syllable1 = Korean.Syllable(phoneme_onset=cur.phoneme_onset,
                                                     phoneme_nucleus=cur.phoneme_nucleus,
-                                                    phoneme_coda=None)
+                                                    phoneme_coda=None
+                        ) # yapf: disable
 
                         syllable2 = Korean.Syllable(phoneme_onset=cur.phoneme_coda,
-                                                    phoneme_nucleus=u'ㅡ',
-                                                    phoneme_coda=None)
+                                                    phoneme_nucleus='ㅡ',
+                                                    phoneme_coda=None
+                        ) # yapf: disable
 
-                        value = unicode(syllable1) + unicode(syllable2)
-                    elif cur.phoneme_coda in (u'ㅁ', u'ㄴ', u'ㅇ', u'ㄹ'):
-                        value = unicode(sound_syllable)
+                        value = StrType(syllable1) + StrType(syllable2)
+                    elif cur.phoneme_coda in ('ㅁ', 'ㄴ', 'ㅇ', 'ㄹ'):
+                        value = StrType(sound_syllable)
                     else:
                         syllable1 = Korean.Syllable(phoneme_onset=cur.phoneme_onset,
                                                     phoneme_nucleus=cur.phoneme_nucleus,
-                                                    phoneme_coda=None)
+                                                    phoneme_coda=None
+                        ) # yapf: disable
 
                         syllable2 = Korean.Syllable(phoneme_onset=cur.phoneme_coda,
-                                                    phoneme_nucleus=u'ㅡ',
-                                                    phoneme_coda=None)
+                                                    phoneme_nucleus='ㅡ',
+                                                    phoneme_coda=None
+                        ) # yapf: disable
 
-                        value = [unicode(sound_syllable), unicode(syllable1) + unicode(syllable2)]
+                        value = [StrType(sound_syllable), StrType(syllable1) + StrType(syllable2)]
                 """
 
                 combination = join(combination, value)
@@ -1245,9 +1277,9 @@ class CMUToKorean(object):
         return result
 
     @staticmethod
-    def _pattern_exception(map, group_index, combination):
-        group_len = len(map)
-        group = map[group_index]
+    def _pattern_exception(map_, group_index, combination):
+        group_len = len(map_)
+        group = map_[group_index]
 
         word = group[1]
         word_vowel_count = 0
@@ -1304,10 +1336,10 @@ class CMUToKorean(object):
             # op '?' 을 추가한다(생략가능)
             for i in range(0, len(phonetic_type)):
                 if phonetic_type[i] == 'V':
-                    group[0][i] += u'?'
+                    group[0][i] += '?'
 
             # op '/' 을 추가한다
-            group[0].insert(0, u'/')
+            group[0].insert(0, '/')
 
         # word type 이 CC 패턴이고 (SM)
         # phonetic type 이 CVC 패턴일때 (ZH AH M)
@@ -1315,25 +1347,25 @@ class CMUToKorean(object):
             # op '?' 을 추가한다(생략가능)
             for i in range(0, len(phonetic_type)):
                 if phonetic_type[i] == 'V':
-                    group[0][i] += u'?'
+                    group[0][i] += '?'
 
             # op '/' 을 추가한다
-            group[0].insert(0, u'/')
+            group[0].insert(0, '/')
 
         # word 특수문자 처리
         if re.search(r'^.+-$', word):
-            group[0].append(u'/')
+            group[0].append('/')
         elif re.search(r'^-.+$', word):
-            group[0].insert(0, u'/')
+            group[0].insert(0, '/')
 
         return False
 
     @staticmethod
-    def _join_process(map, map_index, lhs, rhs):
+    def _join_process(map_, map_index, lhs, rhs):
         if lhs and isinstance(lhs, list):
             build_list = []
             for lv in lhs:
-                result = CMUToKorean._join_process(map, map_index, lv, rhs)
+                result = CMUToKorean._join_process(map_, map_index, lv, rhs)
                 if result:
                     if isinstance(result, list):
                         build_list.extend(result)
@@ -1345,7 +1377,7 @@ class CMUToKorean(object):
         elif rhs and isinstance(rhs, list):
             build_list = []
             for rv in rhs:
-                result = CMUToKorean._join_process(map, map_index, lhs, rv)
+                result = CMUToKorean._join_process(map_, map_index, lhs, rv)
                 if result:
                     if isinstance(result, list):
                         build_list.extend(result)
@@ -1354,25 +1386,25 @@ class CMUToKorean(object):
 
             return build_list
 
-        elif isinstance(rhs, (str, unicode)):
+        elif isinstance(rhs, StrType):
             if not lhs:
-                lhs = u''
+                lhs = ''
 
             if not rhs:
-                rhs = u''
+                rhs = ''
 
             return [lhs + rhs]
         elif isinstance(rhs, CMUToKorean.Control.IF):
             for statement in rhs.chain:
                 if isinstance(statement, dict):
                     if isinstance(statement['condition'], CMUToKorean.Condition.Interface):
-                        if statement['condition'].test(map, map_index, lhs):
-                            return CMUToKorean._join_process(map, map_index, lhs, statement['value'])
+                        if statement['condition'].test(map_, map_index, lhs):
+                            return CMUToKorean._join_process(map_, map_index, lhs, statement['value'])
                     else:
                         # middle.error
                         return None
                 else:
-                    return CMUToKorean._join_process(map, map_index, lhs, statement)
+                    return CMUToKorean._join_process(map_, map_index, lhs, statement)
 
         return None
 
@@ -1388,7 +1420,7 @@ class CMUToKorean(object):
         # middle.comment
         # word가 공백이 존재하는지 체크 필요
 
-        word = unicode(word)
+        word = StrType(word)
         word.upper()
         word_type_list = []
 
@@ -1405,7 +1437,7 @@ class CMUToKorean(object):
         # middle.comment
         # CMU 발음기호 존재여부 체크 필요
 
-        phonetic = unicode(phonetic)
+        phonetic = StrType(phonetic)
         phonetic.upper()
         phonetic_list = phonetic.split()
         phonetic_type_list = []
@@ -1498,7 +1530,7 @@ class CMUToKorean(object):
             # middle.comment
             # 예외로 phonetic 에서 C 타입이고 다음이 ER 일때, 현재가 'R'이 아닐때
             # R을 모음으로 취급한다
-            if type == 'C' and count == 1 and group[0][0] != u'R':
+            if type == 'C' and count == 1 and group[0][0] != 'R':
                 if phonetic_index < phonetic_len and re.search(r'ER\d', phonetic_list[phonetic_index]):
                     vowel_r = True
 
@@ -1514,7 +1546,7 @@ class CMUToKorean(object):
                         add_group_continue = True
 
             # word group
-            token = u''
+            token = ''
             index = word_index
 
             if phonetic_index >= phonetic_len:
@@ -1528,7 +1560,7 @@ class CMUToKorean(object):
                 while index < word_len:
                     value = word_type_list[index]
 
-                    if vowel_r and value[0] == u'R':
+                    if vowel_r and value[0] == 'R':
                         # R을 모음으로 취급
                         vowel_r = False
                         value[1] = 'V'
@@ -1604,7 +1636,7 @@ class CMUToKorean(object):
 
                                 if not merge_group[1]:
                                     merge_group[0] += group[0]
-                                    merge_group[1] = u'' + group[1]
+                                    merge_group[1] = '' + group[1]
                                     result = result[0:count]
                                     return result
 
@@ -1629,7 +1661,7 @@ class CMUToKorean(object):
 
                             phonetic_index = phonetic_len
 
-            if token == u'':
+            if token == '':
                 token = None
 
             # middle.comment
@@ -1648,7 +1680,7 @@ class CMUToKorean(object):
             # 여전이 토큰이 존재하지 않는다면
             # word의 VC가 모두 존재할때 까지 뒤에서부터 그룹을 머지
             if not token:
-                group[1] = u''
+                group[1] = ''
                 count = len(result)
 
                 for merge_group in reversed(result):
